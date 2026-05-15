@@ -63,6 +63,63 @@
     .btn-analyze:active { transform: scale(.98); }
     .btn-analyze:disabled { opacity: .55; cursor: not-allowed; }
 
+    /* Hero tagline */
+    .hero-tagline {
+      text-align: center;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--deep-rose);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    /* Feature icons */
+    .features-row {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+    @media (max-width: 560px) {
+      .features-row { flex-direction: column; align-items: center; gap: 1rem; }
+    }
+    .feature-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      flex: 1;
+      max-width: 160px;
+      text-align: center;
+    }
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: var(--petal);
+      border: 1.5px solid var(--blush);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.45rem;
+    }
+    .feature-label {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      line-height: 1.35;
+    }
+
+    /* Trust badges under button */
+    .trust-badges {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      margin-top: .75rem;
+      font-size: .8rem;
+      color: var(--text-mid);
+      flex-wrap: wrap;
+    }
+    .trust-badges span { font-weight: 600; }
+
     /* Loading */
     .loading { display: none; text-align: center; padding: 3rem 1rem; color: var(--text-mid); }
     .loading.visible { display: block; }
@@ -259,6 +316,23 @@
   </header>
 
   <div class="container">
+    <p class="hero-tagline">W 60 sekund dowiesz się co robi Twoja konkurencja w internecie — i gdzie możesz ją wyprzedzić.</p>
+
+    <div class="features-row">
+      <div class="feature-item">
+        <div class="feature-icon">📈</div>
+        <div class="feature-label">SEO &amp; widoczność w Google</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">💎</div>
+        <div class="feature-label">Oferta i cennik</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔎</div>
+        <div class="feature-label">Mocne i słabe strony</div>
+      </div>
+    </div>
+
     <div class="search-card">
       <h2>Podaj adresy stron do porównania</h2>
 
@@ -274,6 +348,11 @@
       </div>
 
       <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">Porównaj strony</button>
+      <div class="trust-badges">
+        <span>✓ Bezpłatnie</span>
+        <span>✓ Bez rejestracji</span>
+        <span>✓ Wynik w 60 sekund</span>
+      </div>
     </div>
 
     <div class="loading" id="loading">

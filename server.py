@@ -5,7 +5,7 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify, send_file
-from google import genai
+import google.generativeai as genai
 from google.genai import types
 from concurrent.futures import ThreadPoolExecutor
 

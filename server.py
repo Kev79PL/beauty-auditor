@@ -1,0 +1,288 @@
+import os
+import json
+import re
+import time
+import requests
+from bs4 import BeautifulSoup
+from flask import Flask, request, jsonify, send_file
+from google import genai
+from google.genai import types
+from concurrent.futures import ThreadPoolExecutor
+
+GEMINI_MODEL = "gemini-2.5-flash"
+
+app = Flask(__name__)
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+}
+
+
+def normalize(url):
+    url = url.strip()
+    if url and not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    return url
+
+
+def fetch_website(url):
+    resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    title = soup.title.string.strip() if soup.title else ""
+
+    meta_desc = ""
+    tag = soup.find("meta", attrs={"name": re.compile("^description$", re.I)})
+    if tag:
+        meta_desc = tag.get("content", "")
+
+    meta_kw = ""
+    tag = soup.find("meta", attrs={"name": re.compile("^keywords$", re.I)})
+    if tag:
+        meta_kw = tag.get("content", "")
+
+    headings = []
+    for h in soup.find_all(["h1", "h2", "h3"]):
+        t = h.get_text(strip=True)
+        if t and len(t) < 200:
+            headings.append(t)
+
+    social = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"].lower()
+        for p in ("instagram", "facebook", "tiktok", "youtube", "pinterest"):
+            if p in href and a["href"] not in social:
+                social.append(a["href"])
+
+    for tag in soup(["script", "style", "noscript", "nav", "footer"]):
+        tag.decompose()
+    body = " ".join(soup.get_text(" ", strip=True).split())[:5000]
+
+    out = f"URL: {url}\nTytuł: {title}\nMeta opis: {meta_desc}\n"
+    if meta_kw:
+        out += f"Meta keywords: {meta_kw}\n"
+    if headings:
+        out += f"Nagłówki: {' | '.join(headings[:20])}\n"
+    if social:
+        out += f"Linki social media: {', '.join(social[:5])}\n"
+    out += f"\nTreść strony:\n{body}"
+    return out
+
+
+SITE_PROMPT = (
+    "Jesteś przyjaznym doradcą marketingowym dla właścicielek gabinetów kosmetycznych i beauty. "
+    "Piszesz prostym, zrozumiałym językiem — bez technicznego żargonu. "
+    "Zwróć WYŁĄCZNIE surowy obiekt JSON (bez markdown, bez backticks).\n\n"
+    "Struktura JSON:\n"
+    "{\n"
+    '  "brand_name": "nazwa firmy lub gabinetu",\n'
+    '  "website_score": 0,\n'
+    '  "seo_score": 0,\n'
+    '  "offers_score": 0,\n'
+    '  "keywords": {\n'
+    '    "primary": ["3-5 fraz na które strona się pozycjonuje"],\n'
+    '    "secondary": ["3-5 fraz dodatkowych"],\n'
+    '    "missing": ["3-5 ważnych fraz których brakuje"]\n'
+    '  },\n'
+    '  "findings": {\n'
+    '    "good": ["2-3 mocne strony tej witryny — konkretnie i prosto"],\n'
+    '    "warn": ["2-3 rzeczy do poprawy"],\n'
+    '    "bad": ["1-2 wyraźne słabości"]\n'
+    '  }\n'
+    "}\n\n"
+    "Zasady: score = liczby całkowite 0-100. Cały tekst po polsku. "
+    "Pisz tak, żeby właścicielka gabinetu beauty od razu rozumiała o co chodzi — "
+    "nie używaj słów takich jak 'meta tagi', 'crawl', 'indeksacja'. "
+    "Zamiast tego pisz np. 'strona jest trudna do znalezienia w Google'."
+)
+
+COMPARE_PROMPT = (
+    "Jesteś doradcą marketingowym dla właścicielek gabinetów beauty. "
+    "Porównaj wyniki analizy strony KONKURENCJI i MOJEJ strony. "
+    "Zwróć WYŁĄCZNIE surowy JSON (bez markdown, bez backticks).\n\n"
+    "Struktura JSON:\n"
+    "{\n"
+    '  "losing": [\n'
+    '    "konkretny punkt: w czym moja strona jest słabsza od konkurencji",\n'
+    '    "np. Konkurencja ma czytelniejszy cennik usług na stronie głównej"\n'
+    '  ],\n'
+    '  "winning": [\n'
+    '    "konkretny punkt: w czym moja strona jest lepsza",\n'
+    '    "np. Twoja strona lepiej opisuje dostępne zabiegi"\n'
+    '  ],\n'
+    '  "actions": [\n'
+    '    "Bardzo konkretna akcja 1 do wykonania w tym tygodniu",\n'
+    '    "Bardzo konkretna akcja 2",\n'
+    '    "Bardzo konkretna akcja 3"\n'
+    '  ]\n'
+    "}\n\n"
+    "WAŻNE dla 'losing' i 'winning': 2-4 punkty każda lista. "
+    "WAŻNE dla 'actions': 3 BARDZO KONKRETNE zadania. "
+    "Zamiast 'popraw SEO' pisz 'Dodaj frazę [konkretna fraza] do tytułu strony głównej'. "
+    "Zamiast 'dodaj treści' pisz 'Stwórz sekcję z opiniami klientek — minimum 5 opinii z imieniem'. "
+    "Wszystko po polsku, językiem właścicielki gabinetu."
+)
+
+
+def _call_gemini(client, system, user_msg, max_tokens=4096):
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=user_msg,
+                config=types.GenerateContentConfig(
+                    system_instruction=system,
+                    temperature=0.3,
+                    max_output_tokens=max_tokens,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
+                ),
+            )
+            return response.text
+        except Exception as e:
+            msg = str(e)
+            if "429" in msg and attempt < 2:
+                wait = 30 * (attempt + 1)
+                time.sleep(wait)
+                continue
+            raise
+
+
+def _parse_json(text, default=None):
+    for pat in [r"```json\s*([\s\S]*?)\s*```", r"```\s*([\s\S]*?)\s*```"]:
+        m = re.search(pat, text)
+        if m:
+            try:
+                return json.loads(m.group(1))
+            except json.JSONDecodeError:
+                pass
+
+    start = text.find("{")
+    if start != -1:
+        depth = 0
+        for i, ch in enumerate(text[start:], start):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(text[start: i + 1])
+                    except json.JSONDecodeError:
+                        break
+
+    return default if default is not None else {}
+
+
+def _validate_site(r):
+    for k, v in {
+        "brand_name": "Nieznana firma",
+        "website_score": 50,
+        "seo_score": 50,
+        "offers_score": 50,
+        "keywords": {"primary": [], "secondary": [], "missing": []},
+        "findings": {"good": [], "warn": [], "bad": []},
+    }.items():
+        r.setdefault(k, v)
+    if not isinstance(r.get("keywords"), dict):
+        r["keywords"] = {"primary": [], "secondary": [], "missing": []}
+    for k in ("primary", "secondary", "missing"):
+        if not isinstance(r["keywords"].get(k), list):
+            r["keywords"][k] = []
+    if not isinstance(r.get("findings"), dict):
+        r["findings"] = {"good": [], "warn": [], "bad": []}
+    for k in ("good", "warn", "bad"):
+        if not isinstance(r["findings"].get(k), list):
+            r["findings"][k] = []
+    for s in ("website_score", "seo_score", "offers_score"):
+        r[s] = max(0, min(100, int(r.get(s, 50))))
+    return r
+
+
+def _validate_comparison(r):
+    for k in ("losing", "winning", "actions"):
+        if not isinstance(r.get(k), list):
+            r[k] = []
+    r["actions"] = r["actions"][:3]
+    return r
+
+
+def analyze_site(website_text, api_key):
+    client = genai.Client(api_key=api_key)
+    text = _call_gemini(client, SITE_PROMPT, f"Przeanalizuj tę stronę:\n\n{website_text}")
+    return _validate_site(_parse_json(text))
+
+
+def compare_sites(competitor, mine, api_key):
+    client = genai.Client(api_key=api_key)
+    user_msg = (
+        f"Dane strony KONKURENCJI:\n{json.dumps(competitor, ensure_ascii=False)}\n\n"
+        f"Dane MOJEJ strony:\n{json.dumps(mine, ensure_ascii=False)}"
+    )
+    text = _call_gemini(client, COMPARE_PROMPT, user_msg, max_tokens=1000)
+    return _validate_comparison(_parse_json(text, default={"losing": [], "winning": [], "actions": []}))
+
+
+@app.route("/")
+def index():
+    return send_file("index.html")
+
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    data = request.get_json() or {}
+    competitor_url = normalize(data.get("competitor", ""))
+    my_url = normalize(data.get("mine", ""))
+
+    if not competitor_url or not my_url:
+        return jsonify({"error": "Obie adresy stron są wymagane"}), 400
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return jsonify({"error": "GEMINI_API_KEY nie jest ustawiony"}), 500
+
+    client = genai.Client(api_key=api_key)
+
+    with ThreadPoolExecutor(max_workers=2) as ex:
+        fut_comp = ex.submit(fetch_website, competitor_url)
+        fut_mine = ex.submit(fetch_website, my_url)
+        try:
+            competitor_text = fut_comp.result(timeout=30)
+        except Exception as e:
+            return jsonify({"error": f"Nie można pobrać strony konkurencji: {e}"}), 500
+        try:
+            my_text = fut_mine.result(timeout=30)
+        except Exception as e:
+            return jsonify({"error": f"Nie można pobrać Twojej strony: {e}"}), 500
+
+    with ThreadPoolExecutor(max_workers=2) as ex:
+        fut_comp_ana = ex.submit(analyze_site, competitor_text, api_key)
+        fut_mine_ana = ex.submit(analyze_site, my_text, api_key)
+        try:
+            competitor_result = fut_comp_ana.result(timeout=60)
+        except Exception as e:
+            return jsonify({"error": f"Błąd analizy strony konkurencji: {e}"}), 500
+        try:
+            my_result = fut_mine_ana.result(timeout=60)
+        except Exception as e:
+            return jsonify({"error": f"Błąd analizy Twojej strony: {e}"}), 500
+
+    try:
+        comparison = compare_sites(competitor_result, my_result, api_key)
+    except Exception as e:
+        comparison = {"losing": [], "winning": [], "actions": [], "error": str(e)}
+
+    return jsonify({
+        "competitor": competitor_result,
+        "mine": my_result,
+        "comparison": comparison,
+    })
+
+
+if __name__ == "__main__":
+    print("Running on http://localhost:5001")
+    app.run(port=5001, debug=False)

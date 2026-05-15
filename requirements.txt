@@ -1,4 +1,4 @@
 flask
-google-generativeai>=0.8.0
+google-genai
 beautifulsoup4
 requests

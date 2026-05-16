@@ -2,7 +2,9 @@ import os
 import json
 import re
 import time
+import threading
 import requests
+from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify, send_file
 from google import genai
@@ -227,6 +229,23 @@ def compare_sites(competitor, mine, api_key):
     return _validate_comparison(_parse_json(text, default={"losing": [], "winning": [], "actions": []}))
 
 
+N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")
+
+
+def _send_webhook(payload):
+    if not N8N_WEBHOOK_URL:
+        print(f"[WEBHOOK] (no N8N_WEBHOOK_URL) {json.dumps(payload, ensure_ascii=False)}")
+        return
+    try:
+        requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
+    except Exception as e:
+        print(f"[WEBHOOK] Error: {e}")
+
+
+def send_webhook_async(payload):
+    threading.Thread(target=_send_webhook, args=(payload,), daemon=True).start()
+
+
 @app.route("/")
 def index():
     return send_file("index.html")
@@ -283,6 +302,48 @@ def analyze():
     })
 
 
+@app.route("/zamow")
+def zamow():
+    return send_file("zamow.html")
+
+
+@app.route("/dziekujemy")
+def dziekujemy():
+    return send_file("dziekujemy.html")
+
+
+@app.route("/api/save-order", methods=["POST"])
+def save_order():
+    data = request.get_json() or {}
+    payload = {
+        "imie": data.get("imie", ""),
+        "email": data.get("email", ""),
+        "telefon": data.get("telefon", ""),
+        "moja_strona": data.get("moja_strona", ""),
+        "konkurent1": data.get("konkurent1", ""),
+        "konkurent2": data.get("konkurent2", ""),
+        "konkurent3": data.get("konkurent3", ""),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "typ": "audyt_platny_99zl",
+    }
+    send_webhook_async(payload)
+    return jsonify({"success": True})
+
+
+@app.route("/api/save-lead", methods=["POST"])
+def save_lead():
+    data = request.get_json() or {}
+    payload = {
+        "konkurent": data.get("konkurent", ""),
+        "moja_strona": data.get("moja_strona", ""),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "typ": "darmowy_audyt",
+    }
+    send_webhook_async(payload)
+    return jsonify({"success": True})
+
+
 if __name__ == "__main__":
     print("Running on http://localhost:5001")
-    import os; port = int(os.environ.get("PORT", 5001)); app.run(host="0.0.0.0", port=port, debug=False)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port, debug=False)

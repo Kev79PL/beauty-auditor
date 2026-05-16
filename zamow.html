@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zamów audyt — SPACE PR</title>
+  <style>
+    :root {
+      --cream: #FDF8F3;
+      --petal: #F5ECF0;
+      --blush: #EEC5D2;
+      --rose: #C4728A;
+      --deep-rose: #8B3A56;
+      --text-dark: #2E1A25;
+      --text-mid: #6B4055;
+      --border: #E8D0DA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--text-dark); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { background: linear-gradient(135deg, var(--deep-rose), var(--rose)); color: white; padding: 2rem 1rem; text-align: center; }
+    header h1 { font-family: Georgia, serif; font-style: italic; font-size: 2.2rem; letter-spacing: .02em; margin-bottom: .4rem; }
+    header p { font-size: .95rem; opacity: .85; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 2rem 1rem 4rem; flex: 1; }
+
+    .safety-note {
+      background: #F0F9F4;
+      border: 1px solid #B6E4CC;
+      border-radius: 10px;
+      padding: .85rem 1.1rem;
+      font-size: .84rem;
+      color: #2D7D52;
+      margin-bottom: 1.75rem;
+      display: flex;
+      gap: .6rem;
+      align-items: flex-start;
+    }
+    .safety-note span { flex-shrink: 0; font-size: 1.1rem; }
+
+    .form-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 16px rgba(196,114,138,.1);
+    }
+    .form-card h2 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.45rem;
+      color: var(--deep-rose);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .form-group { margin-bottom: 1.1rem; }
+    label.field-label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      margin-bottom: .35rem;
+    }
+    label.field-label .req { color: var(--rose); margin-left: .15rem; }
+    label.field-label .opt { font-weight: 400; color: #aaa; font-size: .78rem; margin-left: .3rem; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      padding: .65rem .9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: .95rem;
+      color: var(--text-dark);
+      background: var(--cream);
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus { border-color: var(--rose); }
+    input::placeholder { color: #bbb; font-size: .88rem; }
+
+    .divider {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-mid);
+      margin: 1.5rem 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .rodo-group {
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      background: var(--petal);
+      border: 1px solid var(--blush);
+      border-radius: 10px;
+      padding: .9rem 1rem;
+    }
+    .rodo-group input[type="checkbox"] {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: .15rem;
+      accent-color: var(--rose);
+      cursor: pointer;
+    }
+    .rodo-group label {
+      font-size: .84rem;
+      color: var(--text-mid);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .rodo-group label a { color: var(--rose); text-decoration: underline; }
+
+    .btn-order {
+      width: 100%;
+      padding: .95rem;
+      background: linear-gradient(135deg, var(--deep-rose), var(--rose));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      letter-spacing: .01em;
+    }
+    .btn-order:hover { opacity: .9; }
+    .btn-order:active { transform: scale(.98); }
+    .btn-order:disabled { opacity: .55; cursor: not-allowed; }
+
+    .error-msg {
+      display: none;
+      background: #FDEAEA;
+      border: 1px solid #f0b0b0;
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      color: #B03030;
+      font-size: .88rem;
+      margin-bottom: 1rem;
+    }
+    .error-msg.visible { display: block; }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: .8rem;
+      color: #999;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    footer a { color: #999; text-decoration: underline; }
+    footer a:hover { color: var(--text-mid); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Audytor Konkurencji Beauty</h1>
+    <p>Profesjonalny audyt Twojej strony i social media</p>
+  </header>
+
+  <div class="container">
+    <div class="safety-note">
+      <span>🔒</span>
+      <span>Twoje dane są bezpieczne i przetwarzane zgodnie z RODO. Nie udostępniamy ich osobom trzecim.</span>
+    </div>
+
+    <div class="form-card">
+      <h2>Zamów audyt za 99 zł</h2>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <form id="orderForm" novalidate>
+        <div class="form-group">
+          <label class="field-label" for="imie">Imię i nazwisko<span class="req">*</span></label>
+          <input type="text" id="imie" name="imie" placeholder="np. Anna Kowalska" required />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="email">Email<span class="req">*</span></label>
+          <input type="email" id="email" name="email" placeholder="np. anna@mojgabinet.pl" required />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="telefon">Telefon<span class="req">*</span></label>
+          <input type="tel" id="telefon" name="telefon" placeholder="np. 600 123 456" required />
+        </div>
+
+        <div class="divider">Strony do audytu</div>
+
+        <div class="form-group">
+          <label class="field-label" for="moja_strona">Adres strony mojego gabinetu<span class="req">*</span></label>
+          <input type="text" id="moja_strona" name="moja_strona" placeholder="np. https://mojgabinet.pl" required />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="konkurent1">Adres strony konkurenta 1<span class="req">*</span></label>
+          <input type="text" id="konkurent1" name="konkurent1" placeholder="np. https://konkurencja.pl" required />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="konkurent2">Adres strony konkurenta 2<span class="opt">(opcjonalne)</span></label>
+          <input type="text" id="konkurent2" name="konkurent2" placeholder="np. https://innakonkurencja.pl" />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="konkurent3">Adres strony konkurenta 3<span class="opt">(opcjonalne)</span></label>
+          <input type="text" id="konkurent3" name="konkurent3" placeholder="np. https://jeszczeinnakonkurencja.pl" />
+        </div>
+
+        <div class="rodo-group">
+          <input type="checkbox" id="rodo" name="rodo" required />
+          <label for="rodo">
+            Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z
+            <a href="https://spacepr.pl/polityka-prywatnosci/" target="_blank" rel="noopener">Polityką Prywatności</a>
+            w celu realizacji audytu.
+          </label>
+        </div>
+
+        <button type="submit" class="btn-order" id="submitBtn">Zamów audyt za 99 zł</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 SPACE PR &nbsp;|&nbsp;
+    <a href="https://spacepr.pl/polityka-prywatnosci/" target="_blank" rel="noopener">Polityka prywatności</a>
+    &nbsp;|&nbsp; Dane przetwarzane zgodnie z RODO
+  </footer>
+
+  <script>
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errEl = document.getElementById('errorMsg');
+      errEl.classList.remove('visible');
+
+      const imie = document.getElementById('imie').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefon = document.getElementById('telefon').value.trim();
+      const moja_strona = document.getElementById('moja_strona').value.trim();
+      const konkurent1 = document.getElementById('konkurent1').value.trim();
+      const konkurent2 = document.getElementById('konkurent2').value.trim();
+      const konkurent3 = document.getElementById('konkurent3').value.trim();
+      const rodo = document.getElementById('rodo').checked;
+
+      if (!imie) { showErr('Podaj imię i nazwisko.'); return; }
+      if (!email || !email.includes('@')) { showErr('Podaj poprawny adres email.'); return; }
+      if (!telefon) { showErr('Podaj numer telefonu.'); return; }
+      if (!moja_strona) { showErr('Podaj adres strony swojego gabinetu.'); return; }
+      if (!konkurent1) { showErr('Podaj adres strony co najmniej jednego konkurenta.'); return; }
+      if (!rodo) { showErr('Wymagana jest zgoda na przetwarzanie danych osobowych.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Wysyłanie...';
+
+      window.open('https://spacepr.pl/konsultacje/', '_blank');
+
+      try {
+        await fetch('/api/save-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imie, email, telefon, moja_strona, konkurent1, konkurent2, konkurent3 })
+        });
+      } catch(e) {}
+
+      window.location.href = '/dziekujemy';
+    });
+
+    function showErr(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.classList.add('visible');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  </script>
+</body>
+</html>

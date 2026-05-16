@@ -307,6 +307,61 @@
       color: white; font-size: .78rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
     }
+
+    /* CTA section */
+    .cta-section {
+      display: none;
+      background: linear-gradient(135deg, var(--petal), var(--cream));
+      border: 1.5px solid var(--blush);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      margin-top: 2rem;
+      box-shadow: 0 2px 16px rgba(196,114,138,.12);
+    }
+    .cta-section.visible { display: block; }
+    .cta-section h2 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.6rem;
+      color: var(--deep-rose);
+      margin-bottom: 1rem;
+    }
+    .cta-section p {
+      color: var(--text-mid);
+      font-size: .97rem;
+      line-height: 1.65;
+      margin-bottom: 1.75rem;
+      max-width: 580px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-cta {
+      display: inline-block;
+      padding: .9rem 2.25rem;
+      background: linear-gradient(135deg, var(--deep-rose), var(--rose));
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      transition: opacity .2s, transform .1s;
+      letter-spacing: .01em;
+    }
+    .btn-cta:hover { opacity: .9; }
+    .btn-cta:active { transform: scale(.98); }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: .8rem;
+      color: #999;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+    footer a { color: #999; text-decoration: underline; }
+    footer a:hover { color: var(--text-mid); }
   </style>
 </head>
 <body>
@@ -363,7 +418,19 @@
 
     <div class="error-box" id="errorBox"></div>
     <div class="report" id="report"></div>
+
+    <div class="cta-section" id="ctaSection">
+      <h2>Potrzebujesz profesjonalnego audytu?</h2>
+      <p>Przeanalizujemy Twoją stronę i social media (Facebook, Instagram) oraz do 3 stron konkurencji. Dostaniesz szczegółowy raport z planem działania w ciągu 48h.</p>
+      <a class="btn-cta" href="/zamow">Zamów audyt za 99 zł &rarr;</a>
+    </div>
   </div>
+
+  <footer>
+    &copy; 2026 SPACE PR &nbsp;|&nbsp;
+    <a href="https://spacepr.pl/polityka-prywatnosci/" target="_blank" rel="noopener">Polityka prywatności</a>
+    &nbsp;|&nbsp; Dane przetwarzane zgodnie z RODO
+  </footer>
 
   <script>
     document.addEventListener('keydown', function(e) {
@@ -382,6 +449,12 @@
       if (!mine) { showError('Podaj adres swojej strony.'); return; }
 
       setLoading(true); hideError(); hideReport();
+
+      fetch('/api/save-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ konkurent: competitor, moja_strona: mine })
+      }).catch(() => {});
 
       try {
         const res = await fetch('/analyze', {
@@ -408,7 +481,10 @@
       b.textContent = msg; b.classList.add('visible');
     }
     function hideError() { document.getElementById('errorBox').classList.remove('visible'); }
-    function hideReport() { document.getElementById('report').classList.remove('visible'); }
+    function hideReport() {
+      document.getElementById('report').classList.remove('visible');
+      document.getElementById('ctaSection').classList.remove('visible');
+    }
 
     function scoreColor(n) {
       return n >= 70 ? '#2D7D52' : n >= 40 ? '#B07800' : '#B03030';
@@ -526,6 +602,7 @@
       const el = document.getElementById('report');
       el.innerHTML = html;
       el.classList.add('visible');
+      document.getElementById('ctaSection').classList.add('visible');
     }
   </script>
 </body>

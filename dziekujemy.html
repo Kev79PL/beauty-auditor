@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dziękujemy za zamówienie — SPACE PR</title>
+  <style>
+    :root {
+      --cream: #FDF8F3;
+      --petal: #F5ECF0;
+      --blush: #EEC5D2;
+      --rose: #C4728A;
+      --deep-rose: #8B3A56;
+      --text-dark: #2E1A25;
+      --text-mid: #6B4055;
+      --border: #E8D0DA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--text-dark); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { background: linear-gradient(135deg, var(--deep-rose), var(--rose)); color: white; padding: 2rem 1rem; text-align: center; }
+    header h1 { font-family: Georgia, serif; font-style: italic; font-size: 2.2rem; letter-spacing: .02em; margin-bottom: .4rem; }
+    header p { font-size: .95rem; opacity: .85; }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 3rem 1rem 4rem; flex: 1; text-align: center; }
+
+    .thank-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      box-shadow: 0 4px 24px rgba(196,114,138,.12);
+    }
+
+    .thank-icon {
+      font-size: 3rem;
+      margin-bottom: 1.25rem;
+      display: block;
+    }
+
+    .thank-card h2 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.8rem;
+      color: var(--deep-rose);
+      margin-bottom: 1.25rem;
+      line-height: 1.3;
+    }
+
+    .thank-card p {
+      color: var(--text-mid);
+      font-size: .97rem;
+      line-height: 1.65;
+      margin-bottom: .75rem;
+    }
+
+    .thank-card .contact-mail {
+      font-weight: 700;
+      color: var(--rose);
+    }
+
+    .btn-home {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: .85rem 2rem;
+      background: linear-gradient(135deg, var(--deep-rose), var(--rose));
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-home:hover { opacity: .9; }
+    .btn-home:active { transform: scale(.98); }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: .8rem;
+      color: #999;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    footer a { color: #999; text-decoration: underline; }
+    footer a:hover { color: var(--text-mid); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Audytor Konkurencji Beauty</h1>
+    <p>Profesjonalny audyt Twojej strony i social media</p>
+  </header>
+
+  <div class="container">
+    <div class="thank-card">
+      <span class="thank-icon">🌸</span>
+      <h2>Dziękujemy za zamówienie!</h2>
+      <p>Twoje zgłoszenie zostało przyjęte.</p>
+      <p>Skontaktujemy się z Tobą w ciągu 24 godzin.</p>
+      <p>Masz pytania? Napisz: <span class="contact-mail">kontakt@spacepr.pl</span></p>
+      <a class="btn-home" href="/">Wróć do strony głównej</a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 SPACE PR &nbsp;|&nbsp;
+    <a href="https://spacepr.pl/polityka-prywatnosci/" target="_blank" rel="noopener">Polityka prywatności</a>
+    &nbsp;|&nbsp; Dane przetwarzane zgodnie z RODO
+  </footer>
+</body>
+</html>

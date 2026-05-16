@@ -323,6 +323,11 @@ def save_order():
         "konkurent1": data.get("konkurent1", ""),
         "konkurent2": data.get("konkurent2", ""),
         "konkurent3": data.get("konkurent3", ""),
+        "firma": data.get("firma", ""),
+        "nip": data.get("nip", ""),
+        "adres": data.get("adres", ""),
+        "kod_pocztowy": data.get("kod_pocztowy", ""),
+        "miasto": data.get("miasto", ""),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "typ": "audyt_platny_99zl",
     }

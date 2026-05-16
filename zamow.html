@@ -96,6 +96,20 @@
     }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+    .invoice-note {
+      font-size: .82rem;
+      color: #aaa;
+      margin: -.5rem 0 1rem;
+      text-align: center;
+    }
+
+    .form-row {
+      display: flex;
+      gap: .75rem;
+    }
+    .form-group-short { flex: 0 0 140px; }
+    .form-group-wide { flex: 1; }
+
     .rodo-group {
       display: flex;
       gap: .75rem;
@@ -196,6 +210,35 @@
           <input type="tel" id="telefon" name="telefon" placeholder="np. 600 123 456" required />
         </div>
 
+        <div class="divider">Dane do faktury</div>
+        <p class="invoice-note">Wypełnij jeśli potrzebujesz faktury VAT</p>
+
+        <div class="form-group">
+          <label class="field-label" for="firma">Nazwa firmy / imię i nazwisko do faktury<span class="opt">(opcjonalne)</span></label>
+          <input type="text" id="firma" name="firma" placeholder="np. Gabinet Urody Anna Kowalska" />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="nip">NIP<span class="opt">(opcjonalne)</span></label>
+          <input type="text" id="nip" name="nip" placeholder="np. 1234567890" />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="adres">Adres (ulica, numer)<span class="opt">(opcjonalne)</span></label>
+          <input type="text" id="adres" name="adres" placeholder="np. ul. Kwiatowa 5/2" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group form-group-short">
+            <label class="field-label" for="kod_pocztowy">Kod pocztowy<span class="opt">(opcjonalne)</span></label>
+            <input type="text" id="kod_pocztowy" name="kod_pocztowy" placeholder="np. 00-001" />
+          </div>
+          <div class="form-group form-group-wide">
+            <label class="field-label" for="miasto">Miasto<span class="opt">(opcjonalne)</span></label>
+            <input type="text" id="miasto" name="miasto" placeholder="np. Warszawa" />
+          </div>
+        </div>
+
         <div class="divider">Strony do audytu</div>
 
         <div class="form-group">
@@ -264,17 +307,21 @@
       btn.disabled = true;
       btn.textContent = 'Wysyłanie...';
 
-      window.open('https://spacepr.pl/konsultacje/', '_blank');
+      const firma = document.getElementById('firma').value.trim();
+      const nip = document.getElementById('nip').value.trim();
+      const adres = document.getElementById('adres').value.trim();
+      const kod_pocztowy = document.getElementById('kod_pocztowy').value.trim();
+      const miasto = document.getElementById('miasto').value.trim();
 
       try {
         await fetch('/api/save-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imie, email, telefon, moja_strona, konkurent1, konkurent2, konkurent3 })
+          body: JSON.stringify({ imie, email, telefon, moja_strona, konkurent1, konkurent2, konkurent3, firma, nip, adres, kod_pocztowy, miasto })
         });
       } catch(e) {}
 
-      window.location.href = '/dziekujemy';
+      window.location.href = 'https://buy.stripe.com/test_eVqcN78Wd2RKfBM5mMbbG00';
     });
 
     function showErr(msg) {

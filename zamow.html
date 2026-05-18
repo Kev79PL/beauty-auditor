@@ -24,6 +24,41 @@
 
     .container { max-width: 640px; margin: 0 auto; padding: 2rem 1rem 4rem; flex: 1; }
 
+    /* Sekcja 1 — co zawiera audyt */
+    .included-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 16px rgba(196,114,138,.1);
+      margin-bottom: 1.5rem;
+    }
+    .included-card h2 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.35rem;
+      color: var(--deep-rose);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .included-list { list-style: none; display: flex; flex-direction: column; gap: 1.1rem; }
+    .included-item { display: flex; gap: .9rem; align-items: flex-start; }
+    .included-icon { font-size: 1.35rem; flex-shrink: 0; line-height: 1.3; }
+    .included-title { font-size: .93rem; font-weight: 700; color: var(--text-dark); margin-bottom: .18rem; }
+    .included-desc { font-size: .82rem; color: var(--text-mid); line-height: 1.5; }
+    .included-divider { border: none; border-top: 1px solid var(--border); margin: 1.4rem 0; }
+    .included-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .5rem;
+      font-size: .88rem;
+    }
+    .included-meta .time { color: var(--text-mid); }
+    .included-meta .price { font-weight: 700; color: var(--deep-rose); font-size: .95rem; }
+
+    /* Safety note */
     .safety-note {
       background: #F0F9F4;
       border: 1px solid #B6E4CC;
@@ -36,8 +71,9 @@
       gap: .6rem;
       align-items: flex-start;
     }
-    .safety-note span { flex-shrink: 0; font-size: 1.1rem; }
+    .safety-note .sn-icon { flex-shrink: 0; font-size: 1.1rem; }
 
+    /* Sekcja 2 — formularz */
     .form-card {
       background: white;
       border: 1.5px solid var(--border);
@@ -83,6 +119,8 @@
     input[type="tel"]:focus { border-color: var(--rose); }
     input::placeholder { color: #bbb; font-size: .88rem; }
 
+    .field-hint { font-size: .78rem; color: #aaa; margin-top: .25rem; }
+
     .divider {
       font-size: .75rem;
       font-weight: 700;
@@ -96,17 +134,7 @@
     }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    .invoice-note {
-      font-size: .82rem;
-      color: #aaa;
-      margin: -.5rem 0 1rem;
-      text-align: center;
-    }
-
-    .form-row {
-      display: flex;
-      gap: .75rem;
-    }
+    .form-row { display: flex; gap: .75rem; }
     .form-group-short { flex: 0 0 140px; }
     .form-group-wide { flex: 1; }
 
@@ -121,33 +149,18 @@
       padding: .9rem 1rem;
     }
     .rodo-group input[type="checkbox"] {
-      flex-shrink: 0;
-      width: 18px;
-      height: 18px;
-      margin-top: .15rem;
-      accent-color: var(--rose);
-      cursor: pointer;
+      flex-shrink: 0; width: 18px; height: 18px;
+      margin-top: .15rem; accent-color: var(--rose); cursor: pointer;
     }
-    .rodo-group label {
-      font-size: .84rem;
-      color: var(--text-mid);
-      line-height: 1.5;
-      cursor: pointer;
-    }
+    .rodo-group label { font-size: .84rem; color: var(--text-mid); line-height: 1.5; cursor: pointer; }
     .rodo-group label a { color: var(--rose); text-decoration: underline; }
 
     .btn-order {
-      width: 100%;
-      padding: .95rem;
+      width: 100%; padding: .95rem;
       background: linear-gradient(135deg, var(--deep-rose), var(--rose));
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity .2s, transform .1s;
-      letter-spacing: .01em;
+      color: white; border: none; border-radius: 10px;
+      font-size: 1.05rem; font-weight: 700;
+      cursor: pointer; transition: opacity .2s, transform .1s; letter-spacing: .01em;
     }
     .btn-order:hover { opacity: .9; }
     .btn-order:active { transform: scale(.98); }
@@ -155,23 +168,16 @@
 
     .error-msg {
       display: none;
-      background: #FDEAEA;
-      border: 1px solid #f0b0b0;
-      border-radius: 8px;
-      padding: .75rem 1rem;
-      color: #B03030;
-      font-size: .88rem;
-      margin-bottom: 1rem;
+      background: #FDEAEA; border: 1px solid #f0b0b0;
+      border-radius: 8px; padding: .75rem 1rem;
+      color: #B03030; font-size: .88rem; margin-bottom: 1rem;
     }
     .error-msg.visible { display: block; }
 
     footer {
-      text-align: center;
-      padding: 1.5rem 1rem;
-      font-size: .8rem;
-      color: #999;
-      border-top: 1px solid var(--border);
-      margin-top: auto;
+      text-align: center; padding: 1.5rem 1rem;
+      font-size: .8rem; color: #999;
+      border-top: 1px solid var(--border); margin-top: auto;
     }
     footer a { color: #999; text-decoration: underline; }
     footer a:hover { color: var(--text-mid); }
@@ -184,38 +190,106 @@
   </header>
 
   <div class="container">
+
+    <!-- SEKCJA 1: Co zawiera audyt -->
+    <div class="included-card">
+      <h2>Co otrzymujesz w profesjonalnym audycie za 99 zł?</h2>
+      <ul class="included-list">
+        <li class="included-item">
+          <span class="included-icon">🔍</span>
+          <div>
+            <div class="included-title">Szczegółowa analiza Twojej strony www</div>
+            <div class="included-desc">szybkość ładowania, SEO, struktura treści, skuteczność formularzy i CTA</div>
+          </div>
+        </li>
+        <li class="included-item">
+          <span class="included-icon">⚔️</span>
+          <div>
+            <div class="included-title">Porównanie z 3 stronami konkurencji</div>
+            <div class="included-desc">wskazujesz 3 konkurentów, sprawdzamy ich strony i pokazujemy gdzie tracisz klientów na ich rzecz</div>
+          </div>
+        </li>
+        <li class="included-item">
+          <span class="included-icon">📱</span>
+          <div>
+            <div class="included-title">Audyt Twojego Facebooka i Instagrama</div>
+            <div class="included-desc">częstotliwość publikacji, zaangażowanie, jakość treści, skuteczność komunikacji</div>
+          </div>
+        </li>
+        <li class="included-item">
+          <span class="included-icon">📊</span>
+          <div>
+            <div class="included-title">Porównanie social media — Ty vs konkurencja</div>
+            <div class="included-desc">zestawienie Twoich kanałów FB i IG z profilami konkurentów</div>
+          </div>
+        </li>
+        <li class="included-item">
+          <span class="included-icon">📋</span>
+          <div>
+            <div class="included-title">Raport zbiorczy z rekomendacjami</div>
+            <div class="included-desc">konkretna lista priorytetowych działań do wdrożenia natychmiast</div>
+          </div>
+        </li>
+      </ul>
+      <hr class="included-divider" />
+      <div class="included-meta">
+        <span class="time">⏱️ Czas realizacji: 48–72 godziny od zamówienia</span>
+        <span class="price">💰 99 zł brutto — jednorazowo, bez ukrytych kosztów</span>
+      </div>
+    </div>
+
     <div class="safety-note">
-      <span>🔒</span>
+      <span class="sn-icon">🔒</span>
       <span>Twoje dane są bezpieczne i przetwarzane zgodnie z RODO. Nie udostępniamy ich osobom trzecim.</span>
     </div>
 
+    <!-- SEKCJA 2: Formularz zamówienia -->
     <div class="form-card">
       <h2>Zamów audyt za 99 zł</h2>
 
       <div class="error-msg" id="errorMsg"></div>
 
       <form id="orderForm" novalidate>
+
+        <div class="divider">Twoja strona i social media</div>
+
         <div class="form-group">
-          <label class="field-label" for="imie">Imię i nazwisko<span class="req">*</span></label>
-          <input type="text" id="imie" name="imie" placeholder="np. Anna Kowalska" required />
+          <label class="field-label" for="url_strony">Adres Twojej strony www<span class="req">*</span></label>
+          <input type="text" id="url_strony" name="url_strony" placeholder="np. https://mojgabinet.pl" required />
         </div>
 
         <div class="form-group">
-          <label class="field-label" for="email">Email<span class="req">*</span></label>
-          <input type="email" id="email" name="email" placeholder="np. anna@mojgabinet.pl" required />
+          <label class="field-label" for="url_facebook">Profil Facebook<span class="req">*</span></label>
+          <input type="text" id="url_facebook" name="url_facebook" placeholder="np. https://facebook.com/mojgabinet" required />
         </div>
 
         <div class="form-group">
-          <label class="field-label" for="telefon">Telefon<span class="req">*</span></label>
-          <input type="tel" id="telefon" name="telefon" placeholder="np. 600 123 456" required />
+          <label class="field-label" for="url_instagram">Profil Instagram<span class="req">*</span></label>
+          <input type="text" id="url_instagram" name="url_instagram" placeholder="np. https://instagram.com/mojgabinet" required />
+        </div>
+
+        <div class="divider">Strony konkurencji do porównania</div>
+
+        <div class="form-group">
+          <label class="field-label" for="url_konkurent_1">Konkurent 1<span class="req">*</span></label>
+          <input type="text" id="url_konkurent_1" name="url_konkurent_1" placeholder="np. https://konkurencja.pl" required />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="url_konkurent_2">Konkurent 2<span class="req">*</span></label>
+          <input type="text" id="url_konkurent_2" name="url_konkurent_2" placeholder="np. https://innakonkurencja.pl" required />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="url_konkurent_3">Konkurent 3<span class="req">*</span></label>
+          <input type="text" id="url_konkurent_3" name="url_konkurent_3" placeholder="np. https://jeszczeinnakonkurencja.pl" required />
         </div>
 
         <div class="divider">Dane do faktury</div>
-        <p class="invoice-note">Wypełnij jeśli potrzebujesz faktury VAT</p>
 
         <div class="form-group">
-          <label class="field-label" for="firma">Nazwa firmy / imię i nazwisko do faktury<span class="opt">(opcjonalne)</span></label>
-          <input type="text" id="firma" name="firma" placeholder="np. Gabinet Urody Anna Kowalska" />
+          <label class="field-label" for="imie_firma">Imię i nazwisko lub nazwa firmy<span class="req">*</span></label>
+          <input type="text" id="imie_firma" name="imie_firma" placeholder="np. Anna Kowalska / Gabinet Urody Anna Kowalska" required />
         </div>
 
         <div class="form-group">
@@ -224,41 +298,25 @@
         </div>
 
         <div class="form-group">
-          <label class="field-label" for="adres">Adres (ulica, numer)<span class="opt">(opcjonalne)</span></label>
-          <input type="text" id="adres" name="adres" placeholder="np. ul. Kwiatowa 5/2" />
+          <label class="field-label" for="ulica">Ulica i numer<span class="req">*</span></label>
+          <input type="text" id="ulica" name="ulica" placeholder="np. ul. Kwiatowa 5/2" required />
         </div>
 
         <div class="form-row">
           <div class="form-group form-group-short">
-            <label class="field-label" for="kod_pocztowy">Kod pocztowy<span class="opt">(opcjonalne)</span></label>
-            <input type="text" id="kod_pocztowy" name="kod_pocztowy" placeholder="np. 00-001" />
+            <label class="field-label" for="kod_pocztowy">Kod pocztowy<span class="req">*</span></label>
+            <input type="text" id="kod_pocztowy" name="kod_pocztowy" placeholder="np. 00-001" required />
           </div>
           <div class="form-group form-group-wide">
-            <label class="field-label" for="miasto">Miasto<span class="opt">(opcjonalne)</span></label>
-            <input type="text" id="miasto" name="miasto" placeholder="np. Warszawa" />
+            <label class="field-label" for="miasto">Miasto<span class="req">*</span></label>
+            <input type="text" id="miasto" name="miasto" placeholder="np. Warszawa" required />
           </div>
         </div>
 
-        <div class="divider">Strony do audytu</div>
-
         <div class="form-group">
-          <label class="field-label" for="moja_strona">Adres strony mojego gabinetu<span class="req">*</span></label>
-          <input type="text" id="moja_strona" name="moja_strona" placeholder="np. https://mojgabinet.pl" required />
-        </div>
-
-        <div class="form-group">
-          <label class="field-label" for="konkurent1">Adres strony konkurenta 1<span class="req">*</span></label>
-          <input type="text" id="konkurent1" name="konkurent1" placeholder="np. https://konkurencja.pl" required />
-        </div>
-
-        <div class="form-group">
-          <label class="field-label" for="konkurent2">Adres strony konkurenta 2<span class="opt">(opcjonalne)</span></label>
-          <input type="text" id="konkurent2" name="konkurent2" placeholder="np. https://innakonkurencja.pl" />
-        </div>
-
-        <div class="form-group">
-          <label class="field-label" for="konkurent3">Adres strony konkurenta 3<span class="opt">(opcjonalne)</span></label>
-          <input type="text" id="konkurent3" name="konkurent3" placeholder="np. https://jeszczeinnakonkurencja.pl" />
+          <label class="field-label" for="email">Email<span class="req">*</span></label>
+          <input type="email" id="email" name="email" placeholder="np. anna@mojgabinet.pl" required />
+          <div class="field-hint">Tu wyślemy potwierdzenie zamówienia i fakturę</div>
         </div>
 
         <div class="rodo-group">
@@ -270,7 +328,7 @@
           </label>
         </div>
 
-        <button type="submit" class="btn-order" id="submitBtn">Zamów audyt za 99 zł</button>
+        <button type="submit" class="btn-order" id="submitBtn">Przejdź do płatności &rarr;</button>
       </form>
     </div>
   </div>
@@ -281,54 +339,72 @@
     &nbsp;|&nbsp; Dane przetwarzane zgodnie z RODO
   </footer>
 
+  <!-- SEKCJA 3: Stripe redirect -->
   <script>
     document.getElementById('orderForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
-      const errEl = document.getElementById('errorMsg');
       errEl.classList.remove('visible');
 
-      const imie = document.getElementById('imie').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const telefon = document.getElementById('telefon').value.trim();
-      const moja_strona = document.getElementById('moja_strona').value.trim();
-      const konkurent1 = document.getElementById('konkurent1').value.trim();
-      const konkurent2 = document.getElementById('konkurent2').value.trim();
-      const konkurent3 = document.getElementById('konkurent3').value.trim();
-      const rodo = document.getElementById('rodo').checked;
+      const url_strony     = document.getElementById('url_strony').value.trim();
+      const url_facebook   = document.getElementById('url_facebook').value.trim();
+      const url_instagram  = document.getElementById('url_instagram').value.trim();
+      const url_konkurent_1 = document.getElementById('url_konkurent_1').value.trim();
+      const url_konkurent_2 = document.getElementById('url_konkurent_2').value.trim();
+      const url_konkurent_3 = document.getElementById('url_konkurent_3').value.trim();
+      const imie_firma     = document.getElementById('imie_firma').value.trim();
+      const nip            = document.getElementById('nip').value.trim();
+      const ulica          = document.getElementById('ulica').value.trim();
+      const kod_pocztowy   = document.getElementById('kod_pocztowy').value.trim();
+      const miasto         = document.getElementById('miasto').value.trim();
+      const email          = document.getElementById('email').value.trim();
+      const rodo           = document.getElementById('rodo').checked;
 
-      if (!imie) { showErr('Podaj imię i nazwisko.'); return; }
+      if (!url_strony)      { showErr('Podaj adres swojej strony www.'); return; }
+      if (!url_facebook)    { showErr('Podaj adres profilu Facebook.'); return; }
+      if (!url_instagram)   { showErr('Podaj adres profilu Instagram.'); return; }
+      if (!url_konkurent_1) { showErr('Podaj adres strony konkurenta 1.'); return; }
+      if (!url_konkurent_2) { showErr('Podaj adres strony konkurenta 2.'); return; }
+      if (!url_konkurent_3) { showErr('Podaj adres strony konkurenta 3.'); return; }
+      if (!imie_firma)      { showErr('Podaj imię i nazwisko lub nazwę firmy.'); return; }
+      if (!ulica)           { showErr('Podaj ulicę i numer.'); return; }
+      if (!kod_pocztowy)    { showErr('Podaj kod pocztowy.'); return; }
+      if (!miasto)          { showErr('Podaj miasto.'); return; }
       if (!email || !email.includes('@')) { showErr('Podaj poprawny adres email.'); return; }
-      if (!telefon) { showErr('Podaj numer telefonu.'); return; }
-      if (!moja_strona) { showErr('Podaj adres strony swojego gabinetu.'); return; }
-      if (!konkurent1) { showErr('Podaj adres strony co najmniej jednego konkurenta.'); return; }
-      if (!rodo) { showErr('Wymagana jest zgoda na przetwarzanie danych osobowych.'); return; }
+      if (!rodo)            { showErr('Wymagana jest zgoda na przetwarzanie danych osobowych.'); return; }
 
       btn.disabled = true;
       btn.textContent = 'Wysyłanie...';
-
-      const firma = document.getElementById('firma').value.trim();
-      const nip = document.getElementById('nip').value.trim();
-      const adres = document.getElementById('adres').value.trim();
-      const kod_pocztowy = document.getElementById('kod_pocztowy').value.trim();
-      const miasto = document.getElementById('miasto').value.trim();
 
       try {
         await fetch('/api/save-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imie, email, telefon, moja_strona, konkurent1, konkurent2, konkurent3, firma, nip, adres, kod_pocztowy, miasto })
+          body: JSON.stringify({
+            imie_firma,
+            nip,
+            ulica,
+            kod_miasto: kod_pocztowy + ' ' + miasto,
+            email,
+            url_strony,
+            url_facebook,
+            url_instagram,
+            url_konkurent_1,
+            url_konkurent_2,
+            url_konkurent_3,
+          })
         });
       } catch(e) {}
 
       window.location.href = 'https://buy.stripe.com/fZufZg0w5beNaoS9mgcwg00';
     });
 
+    const errEl = document.getElementById('errorMsg');
+
     function showErr(msg) {
-      const el = document.getElementById('errorMsg');
-      el.textContent = msg;
-      el.classList.add('visible');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      errEl.textContent = msg;
+      errEl.classList.add('visible');
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   </script>
 </body>

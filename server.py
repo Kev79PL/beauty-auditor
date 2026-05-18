@@ -10,6 +10,7 @@ from flask import Flask, request, jsonify, send_file
 from google import genai
 from google.genai import types
 from concurrent.futures import ThreadPoolExecutor
+import stripe
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
@@ -230,20 +231,29 @@ def compare_sites(competitor, mine, api_key):
 
 
 N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")
+N8N_WEBHOOK_PLATNOSC_URL = os.environ.get("N8N_WEBHOOK_PLATNOSC_URL", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 
 
-def _send_webhook(payload):
-    if not N8N_WEBHOOK_URL:
-        print(f"[WEBHOOK] (no N8N_WEBHOOK_URL) {json.dumps(payload, ensure_ascii=False)}")
+def _send_webhook(payload, url=None):
+    target = url or N8N_WEBHOOK_URL
+    if not target:
+        print(f"[WEBHOOK] (no URL configured) {json.dumps(payload, ensure_ascii=False)}")
         return
     try:
-        requests.post(N8N_WEBHOOK_URL, json=payload, timeout=10)
+        requests.post(target, json=payload, timeout=10)
     except Exception as e:
         print(f"[WEBHOOK] Error: {e}")
 
 
-def send_webhook_async(payload):
-    threading.Thread(target=_send_webhook, args=(payload,), daemon=True).start()
+def send_webhook_async(payload, url=None):
+    threading.Thread(target=_send_webhook, args=(payload,), kwargs={"url": url}, daemon=True).start()
+
+
+@app.route("/ping")
+def ping():
+    return jsonify({"status": "ok"})
 
 
 @app.route("/")
@@ -316,20 +326,21 @@ def dziekujemy():
 def save_order():
     data = request.get_json() or {}
     payload = {
-        "imie": data.get("imie", ""),
-        "email": data.get("email", ""),
-        "telefon": data.get("telefon", ""),
-        "moja_strona": data.get("moja_strona", ""),
-        "konkurent1": data.get("konkurent1", ""),
-        "konkurent2": data.get("konkurent2", ""),
-        "konkurent3": data.get("konkurent3", ""),
-        "firma": data.get("firma", ""),
+        "imie_firma": data.get("imie_firma", ""),
         "nip": data.get("nip", ""),
-        "adres": data.get("adres", ""),
-        "kod_pocztowy": data.get("kod_pocztowy", ""),
-        "miasto": data.get("miasto", ""),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "typ": "audyt_platny_99zl",
+        "ulica": data.get("ulica", ""),
+        "kod_miasto": data.get("kod_miasto", ""),
+        "email": data.get("email", ""),
+        "url_strony": data.get("url_strony", ""),
+        "url_facebook": data.get("url_facebook", ""),
+        "url_instagram": data.get("url_instagram", ""),
+        "url_konkurent_1": data.get("url_konkurent_1", ""),
+        "url_konkurent_2": data.get("url_konkurent_2", ""),
+        "url_konkurent_3": data.get("url_konkurent_3", ""),
+        "status": "oczekuje_na_platnosc",
+        "kwota": "99",
+        "data_zamowienia": datetime.now(timezone.utc).isoformat(),
+        "zrodlo": "audyt.spacepr.pl",
     }
     send_webhook_async(payload)
     return jsonify({"success": True})
@@ -346,6 +357,35 @@ def save_lead():
     }
     send_webhook_async(payload)
     return jsonify({"success": True})
+
+
+@app.route("/webhook/stripe", methods=["POST"])
+def stripe_webhook():
+    payload = request.get_data()
+    sig_header = request.headers.get("Stripe-Signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except ValueError:
+        return jsonify({"error": "Invalid payload"}), 400
+    except stripe.SignatureVerificationError:
+        return jsonify({"error": "Invalid signature"}), 400
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        amount = session.get("amount_total") or 0
+        created = session.get("created") or 0
+        n8n_payload = {
+            "email": (session.get("customer_details") or {}).get("email", ""),
+            "status": "oplacone",
+            "stripe_session_id": session.get("id", ""),
+            "kwota": str(amount // 100),
+            "data_platnosci": datetime.fromtimestamp(created, tz=timezone.utc).isoformat(),
+            "zrodlo": "stripe_webhook",
+        }
+        send_webhook_async(n8n_payload, url=N8N_WEBHOOK_PLATNOSC_URL)
+
+    return jsonify({"status": "ok"})
 
 
 if __name__ == "__main__":

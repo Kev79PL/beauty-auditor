@@ -604,6 +604,9 @@
       el.classList.add('visible');
       document.getElementById('ctaSection').classList.add('visible');
     }
+
+    // Keep-alive: ping server co 5 min żeby Render free tier nie zasypiał
+    setInterval(function() { fetch('/ping').catch(function() {}); }, 5 * 60 * 1000);
   </script>
 </body>
 </html>

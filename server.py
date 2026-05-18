@@ -132,6 +132,10 @@ COMPARE_PROMPT = (
 )
 
 
+class GeminiUnavailableError(Exception):
+    pass
+
+
 def _call_gemini(client, system, user_msg, max_tokens=4096):
     for attempt in range(3):
         try:
@@ -149,9 +153,13 @@ def _call_gemini(client, system, user_msg, max_tokens=4096):
         except Exception as e:
             msg = str(e)
             if "429" in msg and attempt < 2:
-                wait = 30 * (attempt + 1)
-                time.sleep(wait)
+                time.sleep(30 * (attempt + 1))
                 continue
+            if "503" in msg or "UNAVAILABLE" in msg:
+                if attempt < 2:
+                    time.sleep(3)
+                    continue
+                raise GeminiUnavailableError()
             raise
 
 
@@ -288,20 +296,28 @@ def analyze():
         except Exception as e:
             return jsonify({"error": f"Nie można pobrać Twojej strony: {e}"}), 500
 
+    _unavailable_msg = "Analiza chwilowo niedostępna — spróbuj ponownie za chwilę"
+
     with ThreadPoolExecutor(max_workers=2) as ex:
         fut_comp_ana = ex.submit(analyze_site, competitor_text, api_key)
         fut_mine_ana = ex.submit(analyze_site, my_text, api_key)
         try:
             competitor_result = fut_comp_ana.result(timeout=60)
+        except GeminiUnavailableError:
+            return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
             return jsonify({"error": f"Błąd analizy strony konkurencji: {e}"}), 500
         try:
             my_result = fut_mine_ana.result(timeout=60)
+        except GeminiUnavailableError:
+            return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
             return jsonify({"error": f"Błąd analizy Twojej strony: {e}"}), 500
 
     try:
         comparison = compare_sites(competitor_result, my_result, api_key)
+    except GeminiUnavailableError:
+        comparison = {"losing": [], "winning": [], "actions": []}
     except Exception as e:
         comparison = {"losing": [], "winning": [], "actions": [], "error": str(e)}
 

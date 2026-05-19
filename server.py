@@ -358,7 +358,7 @@ def save_order():
         "data_zamowienia": datetime.now(timezone.utc).isoformat(),
         "zrodlo": "audyt.spacepr.pl",
     }
-    send_webhook_async(payload)
+    send_webhook_async(payload, url=N8N_WEBHOOK_PLATNOSC_URL)
     return jsonify({"success": True})
 
 

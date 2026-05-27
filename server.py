@@ -146,7 +146,6 @@ def _call_gemini(client, system, user_msg, max_tokens=4096):
                     system_instruction=system,
                     temperature=0.3,
                     max_output_tokens=max_tokens,
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 ),
             )
             return response.text
@@ -306,13 +305,13 @@ def analyze():
         except GeminiUnavailableError:
             return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
-            return jsonify({"error": f"Błąd analizy strony konkurencji: {e}"}), 500
+            return jsonify({"error": f"Błąd analizy strony konkurencji: {type(e).__name__}: {e}"}), 500
         try:
             my_result = fut_mine_ana.result(timeout=60)
         except GeminiUnavailableError:
             return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
-            return jsonify({"error": f"Błąd analizy Twojej strony: {e}"}), 500
+            return jsonify({"error": f"Błąd analizy Twojej strony: {type(e).__name__}: {e}"}), 500
 
     try:
         comparison = compare_sites(competitor_result, my_result, api_key)

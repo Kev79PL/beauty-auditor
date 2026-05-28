@@ -163,6 +163,8 @@ def _call_gemini(client, system, user_msg, max_tokens=4096):
 
 
 def _parse_json(text, default=None):
+    if not text:
+        return default if default is not None else {}
     for pat in [r"```json\s*([\s\S]*?)\s*```", r"```\s*([\s\S]*?)\s*```"]:
         m = re.search(pat, text)
         if m:
@@ -228,13 +230,16 @@ def analyze_site(website_text, api_key):
 
 
 def compare_sites(competitor, mine, api_key):
-    client = genai.Client(api_key=api_key)
-    user_msg = (
-        f"Dane strony KONKURENCJI:\n{json.dumps(competitor, ensure_ascii=False)}\n\n"
-        f"Dane MOJEJ strony:\n{json.dumps(mine, ensure_ascii=False)}"
-    )
-    text = _call_gemini(client, COMPARE_PROMPT, user_msg, max_tokens=1000)
-    return _validate_comparison(_parse_json(text, default={"losing": [], "winning": [], "actions": []}))
+    try:
+        client = genai.Client(api_key=api_key)
+        user_msg = (
+            f"Dane strony KONKURENCJI:\n{json.dumps(competitor, ensure_ascii=False)}\n\n"
+            f"Dane MOJEJ strony:\n{json.dumps(mine, ensure_ascii=False)}"
+        )
+        text = _call_gemini(client, COMPARE_PROMPT, user_msg, max_tokens=1000)
+        return _validate_comparison(_parse_json(text, default={"losing": [], "winning": [], "actions": []}))
+    except Exception:
+        return {"losing": [], "winning": [], "actions": []}
 
 
 N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "")

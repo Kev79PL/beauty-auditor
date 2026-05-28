@@ -12,7 +12,7 @@ from google.genai import types
 from concurrent.futures import ThreadPoolExecutor
 import stripe
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 app = Flask(__name__)
 

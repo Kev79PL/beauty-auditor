@@ -7,12 +7,11 @@ import requests
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify, send_file
-from google import genai
-from google.genai import types
+import anthropic
 from concurrent.futures import ThreadPoolExecutor
 import stripe
 
-GEMINI_MODEL = "gemini-2.5-flash"
+CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 
 app = Flask(__name__)
 
@@ -132,33 +131,33 @@ COMPARE_PROMPT = (
 )
 
 
-class GeminiUnavailableError(Exception):
+class ClaudeOverloadedError(Exception):
     pass
 
 
-def _call_gemini(client, system, user_msg, max_tokens=4096):
+def _call_claude(api_key, system, user_msg, max_tokens=4096):
+    client = anthropic.Anthropic(api_key=api_key)
     for attempt in range(3):
         try:
-            response = client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=user_msg,
-                config=types.GenerateContentConfig(
-                    system_instruction=system,
-                    temperature=0.3,
-                    max_output_tokens=max_tokens,
-                ),
+            response = client.messages.create(
+                model=CLAUDE_MODEL,
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": user_msg}],
+                temperature=0.3,
             )
-            return response.text
-        except Exception as e:
-            msg = str(e)
-            if "429" in msg and attempt < 2:
+            return response.content[0].text
+        except anthropic.RateLimitError:
+            if attempt < 2:
                 time.sleep(5 * (attempt + 1))
                 continue
-            if "503" in msg or "UNAVAILABLE" in msg:
+            raise
+        except anthropic.APIStatusError as e:
+            if e.status_code == 529:
                 if attempt < 2:
                     time.sleep(3)
                     continue
-                raise GeminiUnavailableError()
+                raise ClaudeOverloadedError()
             raise
 
 
@@ -224,19 +223,17 @@ def _validate_comparison(r):
 
 
 def analyze_site(website_text, api_key):
-    client = genai.Client(api_key=api_key)
-    text = _call_gemini(client, SITE_PROMPT, f"Przeanalizuj tę stronę:\n\n{website_text}")
+    text = _call_claude(api_key, SITE_PROMPT, f"Przeanalizuj tę stronę:\n\n{website_text}")
     return _validate_site(_parse_json(text))
 
 
 def compare_sites(competitor, mine, api_key):
     try:
-        client = genai.Client(api_key=api_key)
         user_msg = (
             f"Dane strony KONKURENCJI:\n{json.dumps(competitor, ensure_ascii=False)}\n\n"
             f"Dane MOJEJ strony:\n{json.dumps(mine, ensure_ascii=False)}"
         )
-        text = _call_gemini(client, COMPARE_PROMPT, user_msg, max_tokens=1000)
+        text = _call_claude(api_key, COMPARE_PROMPT, user_msg, max_tokens=1000)
         return _validate_comparison(_parse_json(text, default={"losing": [], "winning": [], "actions": []}))
     except Exception:
         return {"losing": [], "winning": [], "actions": []}
@@ -282,11 +279,9 @@ def analyze():
     if not competitor_url or not my_url:
         return jsonify({"error": "Obie adresy stron są wymagane"}), 400
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        return jsonify({"error": "GEMINI_API_KEY nie jest ustawiony"}), 500
-
-    client = genai.Client(api_key=api_key)
+        return jsonify({"error": "ANTHROPIC_API_KEY nie jest ustawiony"}), 500
 
     with ThreadPoolExecutor(max_workers=2) as ex:
         fut_comp = ex.submit(fetch_website, competitor_url)
@@ -307,20 +302,20 @@ def analyze():
         fut_mine_ana = ex.submit(analyze_site, my_text, api_key)
         try:
             competitor_result = fut_comp_ana.result(timeout=120)
-        except GeminiUnavailableError:
+        except ClaudeOverloadedError:
             return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
             return jsonify({"error": f"Błąd analizy strony konkurencji: {type(e).__name__}: {e}"}), 500
         try:
             my_result = fut_mine_ana.result(timeout=120)
-        except GeminiUnavailableError:
+        except ClaudeOverloadedError:
             return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
             return jsonify({"error": f"Błąd analizy Twojej strony: {type(e).__name__}: {e}"}), 500
 
     try:
         comparison = compare_sites(competitor_result, my_result, api_key)
-    except GeminiUnavailableError:
+    except ClaudeOverloadedError:
         comparison = {"losing": [], "winning": [], "actions": []}
     except Exception as e:
         comparison = {"losing": [], "winning": [], "actions": [], "error": str(e)}

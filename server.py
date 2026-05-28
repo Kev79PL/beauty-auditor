@@ -12,7 +12,7 @@ from google.genai import types
 from concurrent.futures import ThreadPoolExecutor
 import stripe
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-2.0-flash"
 
 app = Flask(__name__)
 
@@ -152,7 +152,7 @@ def _call_gemini(client, system, user_msg, max_tokens=4096):
         except Exception as e:
             msg = str(e)
             if "429" in msg and attempt < 2:
-                time.sleep(30 * (attempt + 1))
+                time.sleep(5 * (attempt + 1))
                 continue
             if "503" in msg or "UNAVAILABLE" in msg:
                 if attempt < 2:
@@ -301,13 +301,13 @@ def analyze():
         fut_comp_ana = ex.submit(analyze_site, competitor_text, api_key)
         fut_mine_ana = ex.submit(analyze_site, my_text, api_key)
         try:
-            competitor_result = fut_comp_ana.result(timeout=60)
+            competitor_result = fut_comp_ana.result(timeout=120)
         except GeminiUnavailableError:
             return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
             return jsonify({"error": f"Błąd analizy strony konkurencji: {type(e).__name__}: {e}"}), 500
         try:
-            my_result = fut_mine_ana.result(timeout=60)
+            my_result = fut_mine_ana.result(timeout=120)
         except GeminiUnavailableError:
             return jsonify({"error": _unavailable_msg}), 503
         except Exception as e:
